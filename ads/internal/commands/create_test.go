@@ -12,33 +12,21 @@ import (
 	"github.com/schoren/example/ads/ads/internal/types"
 )
 
-type MockPersister struct {
+type MockCreatePersister struct {
 	mock.Mock
 }
 
-func (m *MockPersister) Create(ad types.Ad) (types.Ad, error) {
+func (m *MockCreatePersister) Create(ad types.Ad) (types.Ad, error) {
 	args := m.Called(ad)
 	return args.Get(0).(types.Ad), args.Error(1)
 }
 
-func (m *MockPersister) ExpectCreateSuccess(inputAd types.Ad, outputAd types.Ad) {
+func (m *MockCreatePersister) ExpectCreateSuccess(inputAd types.Ad, outputAd types.Ad) {
 	m.On("Create", inputAd).Return(outputAd, nil)
 }
 
-func (m *MockPersister) ExpectCreateError(inputAd types.Ad, err error) {
+func (m *MockCreatePersister) ExpectCreateError(inputAd types.Ad, err error) {
 	m.On("Create", inputAd).Return(types.Ad{}, err)
-}
-
-type MockNotifier struct {
-	mock.Mock
-}
-
-func (m *MockNotifier) AdCreated(inputAd types.Ad) {
-	m.Called(inputAd)
-}
-
-func (m *MockNotifier) ExpectAdCreated(inputAd types.Ad) {
-	m.On("AdCreated", inputAd).Once()
 }
 
 var (
@@ -62,7 +50,7 @@ var (
 
 type createFixtures struct {
 	command   commands.Create
-	persister *MockPersister
+	persister *MockCreatePersister
 	notifier  *MockNotifier
 }
 
@@ -72,7 +60,7 @@ func (f createFixtures) assertMockExpectations(t *testing.T) {
 }
 
 func createSetup() createFixtures {
-	p := new(MockPersister)
+	p := new(MockCreatePersister)
 	n := new(MockNotifier)
 	c := commands.Create{
 		Persister: p,
@@ -85,7 +73,7 @@ func createSetup() createFixtures {
 func TestCreateOK(t *testing.T) {
 	f := createSetup()
 	f.persister.ExpectCreateSuccess(createExampleAd, createExamplePersistedAd)
-	f.notifier.ExpectAdCreated(createExamplePersistedAd)
+	f.notifier.ExpectAdUpdate(createExamplePersistedAd)
 
 	err := f.command.Execute(createExamplePayload)
 	assert.NoError(t, err)

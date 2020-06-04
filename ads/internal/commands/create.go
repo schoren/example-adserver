@@ -10,19 +10,14 @@ type CreatePayload struct {
 	Ad types.Ad
 }
 
-// Persister allows to persist an ad to a data store
-type Persister interface {
+// CreatePersister allows to persist an ad to a data store
+type CreatePersister interface {
 	Create(types.Ad) (types.Ad, error)
-}
-
-// Notifier can propagate events to other components of the system
-type Notifier interface {
-	AdCreated(types.Ad)
 }
 
 // Create is a command used to create a new Ad
 type Create struct {
-	Persister Persister
+	Persister CreatePersister
 	Notifier  Notifier
 }
 
@@ -33,7 +28,7 @@ func (c Create) Execute(data CreatePayload) error {
 		return fmt.Errorf("Persister.Create error when creating ad: %w", err)
 	}
 
-	c.Notifier.AdCreated(ad)
+	c.Notifier.AdUpdate(ad)
 
 	return nil
 }
