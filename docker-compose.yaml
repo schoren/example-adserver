@@ -1,0 +1,37 @@
+version: '2.0'
+services:
+  ads:
+    image: example-adserver/ads
+    build:
+        context: .
+        dockerfile: ./ads/Dockerfile
+    ports:
+    - "8000:8000"
+    environment:
+        DB_DSN: "root:root@tcp(mysql:3306)/ads"
+        SRV_ADDR: ":8000"
+        KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+    depends_on:
+      - mysql
+      - kafka
+
+  mysql:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+
+  zookeeper:
+    image: wurstmeister/zookeeper
+
+  kafka:
+    image: wurstmeister/kafka
+    hostname: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
