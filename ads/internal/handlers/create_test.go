@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/schoren/example/ads/ads/internal/types"
 
 	"github.com/stretchr/testify/assert"
@@ -50,11 +51,14 @@ func (m *MockCreater) ExpectExecuteError(payload commands.CreatePayload) {
 	m.On("Execute", createExampleCommandPayload).Return(createExampleCommandError)
 }
 
-func createSetup() *MockCreater {
+func createSetup() (*mux.Router, *MockCreater) {
+	router := mux.NewRouter()
+	handlers.ConfigureRouter(router)
+
 	creater := new(MockCreater)
 	handlers.CreateCommand = creater
 
-	return creater
+	return router, creater
 }
 
 func buildCreateRequest(t *testing.T, body string) *http.Request {
@@ -64,11 +68,11 @@ func buildCreateRequest(t *testing.T, body string) *http.Request {
 }
 
 func TestCreateSuccess(t *testing.T) {
-	creater := createSetup()
+	router, creater := createSetup()
 	creater.ExpectExecuteSuccess(createExampleCommandPayload)
 
 	req := buildCreateRequest(t, createExampleOKRequest)
-	rr := request.Exec(req, http.HandlerFunc(handlers.Create))
+	rr := request.Exec(req, router.ServeHTTP)
 
 	assert.Equal(t, http.StatusCreated, rr.Code)
 	assert.Empty(t, rr.Body.String())
@@ -76,10 +80,10 @@ func TestCreateSuccess(t *testing.T) {
 }
 
 func TestCreateInvalidJSON(t *testing.T) {
-	creater := createSetup()
+	router, creater := createSetup()
 
 	req := buildCreateRequest(t, createExampleInvalidJSONRequest)
-	rr := request.Exec(req, http.HandlerFunc(handlers.Create))
+	rr := request.Exec(req, router.ServeHTTP)
 
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 	assert.NotEmpty(t, rr.Body.String())
@@ -87,11 +91,11 @@ func TestCreateInvalidJSON(t *testing.T) {
 }
 
 func TestCreateCommandError(t *testing.T) {
-	creater := createSetup()
+	router, creater := createSetup()
 	creater.ExpectExecuteError(createExampleCommandPayload)
 
 	req := buildCreateRequest(t, createExampleOKRequest)
-	rr := request.Exec(req, http.HandlerFunc(handlers.Create))
+	rr := request.Exec(req, router.ServeHTTP)
 
 	assert.Equal(t, http.StatusInternalServerError, rr.Code)
 	assert.Empty(t, rr.Body.String())
