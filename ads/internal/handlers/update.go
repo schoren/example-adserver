@@ -15,7 +15,7 @@ import (
 // Define HTTP Method and URL
 const (
 	UpdateMethod = http.MethodPut
-	UpdateURL    = "/update/{id}"
+	UpdateURL    = "/{id}"
 )
 
 // Updater handles the creation of a given ad

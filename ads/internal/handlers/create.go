@@ -12,7 +12,7 @@ import (
 // Define HTTP Method and URL
 const (
 	CreateMethod = http.MethodPost
-	CreateURL    = "/create"
+	CreateURL    = "/"
 )
 
 // Creater handles the creation of a given ad
