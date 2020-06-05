@@ -1,0 +1,13 @@
+version: '2.0'
+services:
+  ads:
+    image: example-adserver/ads
+    build:
+        context: .
+        dockerfile: ./ads/Dockerfile
+    ports:
+    - "8000:8000"
+    environment:
+        DB_DSN: "username:password@tcp(mysql:3306)/ads"
+        SRV_ADDR: ":8000"
+    
