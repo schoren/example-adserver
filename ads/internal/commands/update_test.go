@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/schoren/example/ads/ads/internal/commands"
-	"github.com/schoren/example/ads/ads/internal/types"
+	"github.com/schoren/example-adserver/ads/internal/commands"
+	"github.com/schoren/example-adserver/ads/internal/types"
 )
 
 type MockUpdatePersister struct {

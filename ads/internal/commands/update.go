@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 
-	"github.com/schoren/example/ads/ads/internal/types"
+	"github.com/schoren/example-adserver/ads/internal/types"
 )
 
 type UpdatePayload struct {

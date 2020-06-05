@@ -8,8 +8,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/schoren/example/ads/ads/internal/commands"
-	"github.com/schoren/example/ads/ads/internal/types"
+	"github.com/schoren/example-adserver/ads/internal/commands"
+	"github.com/schoren/example-adserver/ads/internal/types"
 )
 
 // Define HTTP Method and URL

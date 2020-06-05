@@ -8,14 +8,14 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/schoren/example/ads/ads/internal/types"
+	"github.com/schoren/example-adserver/ads/internal/types"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/schoren/example/ads/ads/internal/commands"
-	"github.com/schoren/example/ads/ads/internal/handlers"
-	"github.com/schoren/example/ads/testutil/http/request"
+	"github.com/schoren/example-adserver/ads/internal/commands"
+	"github.com/schoren/example-adserver/ads/internal/handlers"
+	"github.com/schoren/example-adserver/testutil/http/request"
 )
 
 var (
