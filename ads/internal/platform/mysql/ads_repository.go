@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/schoren/example-adserver/ads/internal/types"
+	"github.com/schoren/example-adserver/types"
 )
 
 // AdsRepository is a MySQL repository for ads

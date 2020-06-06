@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Shopify/sarama"
-	"github.com/schoren/example-adserver/ads/internal/types"
+	"github.com/schoren/example-adserver/types"
 )
 
 // Notifier notifier
