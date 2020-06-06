@@ -22,13 +22,13 @@ type Create struct {
 }
 
 // Execute the Create command with the given payload
-func (c Create) Execute(data CreatePayload) error {
+func (c Create) Execute(data CreatePayload) (types.Ad, error) {
 	ad, err := c.Persister.Create(data.Ad)
 	if err != nil {
-		return fmt.Errorf("Persister.Create error when creating ad: %w", err)
+		return types.Ad{}, fmt.Errorf("Persister.Create error when creating ad: %w", err)
 	}
 
 	c.Notifier.AdUpdate(ad)
 
-	return nil
+	return ad, nil
 }

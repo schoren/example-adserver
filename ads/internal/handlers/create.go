@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -17,7 +18,7 @@ const (
 
 // Creater handles the creation of a given ad
 type Creater interface {
-	Execute(commands.CreatePayload) error
+	Execute(commands.CreatePayload) (types.Ad, error)
 }
 
 var CreateCommand Creater
@@ -47,12 +48,13 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	err = CreateCommand.Execute(payload)
+	persistedAd, err := CreateCommand.Execute(payload)
 	if err != nil {
 		log.Printf("Error executing Create command: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	w.Header().Add("Location", fmt.Sprintf("%s/%d", AdServerURL, persistedAd.ID))
 	w.WriteHeader(http.StatusCreated)
 }

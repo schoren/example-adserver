@@ -75,8 +75,9 @@ func TestCreateOK(t *testing.T) {
 	f.persister.ExpectCreateSuccess(createExampleAd, createExamplePersistedAd)
 	f.notifier.ExpectAdUpdate(createExamplePersistedAd)
 
-	err := f.command.Execute(createExamplePayload)
+	ad, err := f.command.Execute(createExamplePayload)
 	assert.NoError(t, err)
+	assert.Equal(t, createExamplePersistedAd, ad)
 	f.assertMockExpectations(t)
 }
 
@@ -84,7 +85,8 @@ func TestCreatePersisterFailure(t *testing.T) {
 	f := createSetup()
 	f.persister.ExpectCreateError(createExampleAd, createExamplePersisterError)
 
-	err := f.command.Execute(createExamplePayload)
+	ad, err := f.command.Execute(createExamplePayload)
 	assert.True(t, errors.Is(err, createExamplePersisterError))
+	assert.Equal(t, types.Ad{}, ad)
 	f.assertMockExpectations(t)
 }
