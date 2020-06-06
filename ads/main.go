@@ -20,6 +20,11 @@ import (
 
 func main() {
 
+	adserverBaseURL := os.Getenv("ADSERVER_BASE_URL")
+	if adserverBaseURL == "" {
+		panic(fmt.Errorf("ADSERVER_BASE_URL not provided"))
+	}
+
 	dbDSN := os.Getenv("DB_DSN")
 	if dbDSN == "" {
 		panic(fmt.Errorf("DB_DSN not provided"))
@@ -58,6 +63,7 @@ func main() {
 	adsRepository := mysql.NewAdsRepository(db)
 	kafkaNotifier := kafka.NewNotifier(kafkaProducer)
 
+	handlers.AdServerBaseURL = adserverBaseURL
 	handlers.CreateCommand = &commands.Create{
 		Persister: adsRepository,
 		Notifier:  kafkaNotifier,

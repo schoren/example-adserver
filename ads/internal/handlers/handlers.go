@@ -4,7 +4,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var AdServerURL string
+var AdServerBaseURL string
 
 // ConfigureRouter configures this package http handlers for a given Gorilla Mux router
 func ConfigureRouter(router *mux.Router) {

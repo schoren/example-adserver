@@ -62,7 +62,7 @@ func createSetup() (*mux.Router, *MockCreater) {
 
 	creater := new(MockCreater)
 	handlers.CreateCommand = creater
-	handlers.AdServerURL = "http://adserver"
+	handlers.AdServerBaseURL = "http://adserver"
 
 	return router, creater
 }
@@ -82,7 +82,7 @@ func TestCreateSuccess(t *testing.T) {
 
 	assert.Equal(t, http.StatusCreated, rr.Code)
 	assert.Empty(t, rr.Body.String())
-	assert.Equal(t, fmt.Sprintf("%s/%d", handlers.AdServerURL, createExampleNewAd.ID), rr.Header().Get("Location"))
+	assert.Equal(t, fmt.Sprintf("%s/%d", handlers.AdServerBaseURL, createExampleNewAd.ID), rr.Header().Get("Location"))
 	creater.AssertExpectations(t)
 }
 

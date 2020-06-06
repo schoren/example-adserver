@@ -55,6 +55,6 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Add("Location", fmt.Sprintf("%s/%d", AdServerURL, persistedAd.ID))
+	w.Header().Add("Location", fmt.Sprintf("%s/%d", AdServerBaseURL, persistedAd.ID))
 	w.WriteHeader(http.StatusCreated)
 }
