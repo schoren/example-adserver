@@ -3,21 +3,17 @@ package commands
 import (
 	"fmt"
 
+	"github.com/schoren/example-adserver/adserver/internal/adstore"
 	"github.com/schoren/example-adserver/adserver/internal/renderer"
-	"github.com/schoren/example-adserver/types"
 )
 
 type emptyRenderer struct{}
 
 func (r emptyRenderer) Render() string { return "" }
 
-type AdStoreGetter interface {
-	Get(id int) (types.Ad, error)
-}
-
 // ServeCommand tries to create a Renderer from the given ad ID
 type ServeCommand struct {
-	AdStore AdStoreGetter
+	AdStore adstore.Getter
 }
 
 func (c *ServeCommand) Execute(adID int) (renderer.Renderer, error) {
