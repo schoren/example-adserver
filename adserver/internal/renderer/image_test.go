@@ -3,32 +3,32 @@ package renderer_test
 import (
 	"testing"
 
-	"github.com/schoren/example-adserver/adserver/renderer"
+	"github.com/schoren/example-adserver/adserver/internal/renderer"
 	"github.com/schoren/example-adserver/types"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	exampleAd = types.Ad{
+	imageRendererExampleAd = types.Ad{
 		ID:              1,
 		ImageURL:        "http://example.org/img.gif",
 		ClickThroughURL: "http://example.org/",
 	}
 
-	exampleEmptyAd = types.Ad{}
+	imageRendererExampleEmptyAd = types.Ad{}
 
-	exampleRenderedAd = `<a href="http://example.org/"><img src="http://example.org/img.gif"></a>`
+	imageRendererExampleRenderedAd = `<a href="http://example.org/"><img src="http://example.org/img.gif"></a>`
 )
 
 func TestImageRenderer(t *testing.T) {
-	r, err := renderer.NewImage(exampleAd)
+	r, err := renderer.NewImage(imageRendererExampleAd)
 
 	assert.NoError(t, err)
-	assert.Equal(t, exampleRenderedAd, r.Render())
+	assert.Equal(t, imageRendererExampleRenderedAd, r.Render())
 }
 
 func TestImageRendererAdValidation(t *testing.T) {
-	r, err := renderer.NewImage(exampleEmptyAd)
+	r, err := renderer.NewImage(imageRendererExampleEmptyAd)
 
 	assert.Error(t, err)
 	assert.Empty(t, r)
