@@ -6,13 +6,12 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
-	"github.com/schoren/example-adserver/ads/internal/types"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
 	"github.com/schoren/example-adserver/ads/internal/commands"
 	"github.com/schoren/example-adserver/ads/internal/handlers"
+	"github.com/schoren/example-adserver/ads/internal/types"
 	"github.com/schoren/example-adserver/testutil/http/request"
 )
 
@@ -31,6 +30,12 @@ var (
 		},
 	}
 
+	createExampleNewAd = types.Ad{
+		ID:              1,
+		ImageURL:        "https://via.placeholder.com/300x300",
+		ClickThroughURL: "https://github.com",
+	}
+
 	createExampleCommandError = fmt.Errorf("There was some error")
 )
 
@@ -38,17 +43,17 @@ type MockCreater struct {
 	mock.Mock
 }
 
-func (m *MockCreater) Execute(p commands.CreatePayload) error {
+func (m *MockCreater) Execute(p commands.CreatePayload) (types.Ad, error) {
 	args := m.Called(p)
-	return args.Error(0)
+	return args.Get(0).(types.Ad), args.Error(1)
 }
 
 func (m *MockCreater) ExpectExecuteSuccess(payload commands.CreatePayload) {
-	m.On("Execute", createExampleCommandPayload).Return(nil)
+	m.On("Execute", createExampleCommandPayload).Return(createExampleNewAd, nil)
 }
 
 func (m *MockCreater) ExpectExecuteError(payload commands.CreatePayload) {
-	m.On("Execute", createExampleCommandPayload).Return(createExampleCommandError)
+	m.On("Execute", createExampleCommandPayload).Return(types.Ad{}, createExampleCommandError)
 }
 
 func createSetup() (*mux.Router, *MockCreater) {
@@ -57,6 +62,7 @@ func createSetup() (*mux.Router, *MockCreater) {
 
 	creater := new(MockCreater)
 	handlers.CreateCommand = creater
+	handlers.AdServerBaseURL = "http://adserver"
 
 	return router, creater
 }
@@ -76,6 +82,7 @@ func TestCreateSuccess(t *testing.T) {
 
 	assert.Equal(t, http.StatusCreated, rr.Code)
 	assert.Empty(t, rr.Body.String())
+	assert.Equal(t, fmt.Sprintf("%s/%d", handlers.AdServerBaseURL, createExampleNewAd.ID), rr.Header().Get("Location"))
 	creater.AssertExpectations(t)
 }
 

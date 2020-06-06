@@ -8,6 +8,7 @@ services:
     ports:
     - "8000:8000"
     environment:
+        ADSERVER_BASE_URL: "http://adserver"
         DB_DSN: "root:root@tcp(mysql:3306)/ads"
         SRV_ADDR: ":8000"
         KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
