@@ -11,13 +11,13 @@ type emptyRenderer struct{}
 
 func (r emptyRenderer) Render() string { return "" }
 
-type AdStore interface {
+type AdStoreGetter interface {
 	Get(id int) (types.Ad, error)
 }
 
 // ServeCommand tries to create a Renderer from the given ad ID
 type ServeCommand struct {
-	AdStore AdStore
+	AdStore AdStoreGetter
 }
 
 func (c *ServeCommand) Execute(adID int) (renderer.Renderer, error) {
