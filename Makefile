@@ -1,6 +1,9 @@
 build:
 	docker-compose build
 
+run: build
+	docker-compose up
+
 go-test-image:
 	docker build . -f test.dockerfile -t example-adserver/go-test 
 

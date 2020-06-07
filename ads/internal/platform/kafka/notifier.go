@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Shopify/sarama"
-	"github.com/schoren/example-adserver/ads/internal/types"
+	"github.com/schoren/example-adserver/types"
 )
 
 // Notifier notifier
@@ -17,15 +17,10 @@ func NewNotifier(producer sarama.SyncProducer) *Notifier {
 	return &Notifier{producer}
 }
 
-type ad struct {
-	ID              int    `json:"id"`
-	ImageURL        string `json:"image_url"`
-	ClickThroughURL string `json:"clickthrough_url"`
-}
-
 // AdUpdate notifies subscriber about changes in ads
 func (n *Notifier) AdUpdate(inputAd types.Ad) {
 	encoded, _ := json.Marshal(inputAd)
+	log.Println("Encoded JSON is", string(encoded))
 	_, _, err := n.producer.SendMessage(&sarama.ProducerMessage{
 		Topic: "ad-updates",
 		Value: sarama.StringEncoder(string(encoded)),

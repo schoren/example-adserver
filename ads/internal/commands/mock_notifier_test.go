@@ -1,7 +1,7 @@
 package commands_test
 
 import (
-	"github.com/schoren/example-adserver/ads/internal/types"
+	"github.com/schoren/example-adserver/types"
 	"github.com/stretchr/testify/mock"
 )
 
