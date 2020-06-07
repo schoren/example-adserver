@@ -39,5 +39,4 @@ func Serve(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprint(w, renderer.Render())
-	w.WriteHeader(http.StatusOK)
 }
