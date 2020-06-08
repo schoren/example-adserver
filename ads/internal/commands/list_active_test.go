@@ -54,7 +54,6 @@ func listActiveSetup() (*commands.ListActive, *MockActiveAdGetter) {
 
 func TestListActiveOK(t *testing.T) {
 	cmd, adsGetter := listActiveSetup()
-
 	adsGetter.ExpectGetActiveSuccess(listActiveExampleAds)
 
 	ads, err := cmd.Execute()
@@ -65,7 +64,6 @@ func TestListActiveOK(t *testing.T) {
 
 func TestListActiveAdsGetterError(t *testing.T) {
 	cmd, adsGetter := listActiveSetup()
-
 	adsGetter.ExpectGetActiveError()
 
 	ads, err := cmd.Execute()

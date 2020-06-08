@@ -68,6 +68,7 @@ func TestUpdateOK(t *testing.T) {
 	f.notifier.ExpectAdUpdate(updateExampleAd)
 
 	err := f.command.Execute(updateExamplePayload)
+
 	assert.NoError(t, err)
 	f.assertMockExpectations(t)
 }
@@ -77,6 +78,7 @@ func TestUpdatePersisterFailure(t *testing.T) {
 	f.persister.ExpectUpdateError(updateExampleAd, updateExamplePersisterError)
 
 	err := f.command.Execute(updateExamplePayload)
+
 	assert.True(t, errors.Is(err, updateExamplePersisterError))
 	f.assertMockExpectations(t)
 }
