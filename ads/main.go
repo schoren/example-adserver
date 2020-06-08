@@ -64,10 +64,7 @@ func main() {
 	kafkaNotifier := kafka.NewNotifier(kafkaProducer)
 
 	handlers.AdServerBaseURL = adserverBaseURL
-	handlers.CreateCommand = &commands.Create{
-		Persister: adsRepository,
-		Notifier:  kafkaNotifier,
-	}
+	handlers.CreateCommand = commands.NewCreate(adsRepository, kafkaNotifier)
 
 	handlers.UpdateCommand = &commands.Update{
 		Persister: adsRepository,

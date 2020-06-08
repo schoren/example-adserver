@@ -49,7 +49,7 @@ var (
 )
 
 type createFixtures struct {
-	command   commands.Create
+	command   *commands.Create
 	persister *MockCreatePersister
 	notifier  *MockNotifier
 }
@@ -62,10 +62,7 @@ func (f createFixtures) assertMockExpectations(t *testing.T) {
 func createSetup() createFixtures {
 	p := new(MockCreatePersister)
 	n := new(MockNotifier)
-	c := commands.Create{
-		Persister: p,
-		Notifier:  n,
-	}
+	c := commands.NewCreate(p, n)
 
 	return createFixtures{c, p, n}
 }
