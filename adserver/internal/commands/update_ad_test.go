@@ -20,7 +20,7 @@ var (
 	}
 )
 
-func setupUpdateAd() (commands.UpdateAd, *MockAdStore) {
+func setupUpdateAd() (*commands.UpdateAd, *MockAdStore) {
 	mockAdStore := new(MockAdStore)
 	cmd := commands.NewUpdateAd(mockAdStore)
 

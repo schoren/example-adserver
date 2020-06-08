@@ -20,7 +20,7 @@ var (
 	serveExampleAdStoreError = fmt.Errorf("Some datastore error")
 )
 
-func setupServe() (commands.Serve, *MockAdStore) {
+func setupServe() (*commands.Serve, *MockAdStore) {
 	mockAdStore := new(MockAdStore)
 	cmd := commands.NewServe(mockAdStore)
 
