@@ -51,8 +51,29 @@ func (r *AdsRepository) Update(ad types.Ad) error {
 
 	_, err = stmt.Exec(ad.ImageURL, ad.ClickThroughURL, ad.ID)
 	if err != nil {
-		return fmt.Errorf("Error updateing ad: %w", err)
+		return fmt.Errorf("Error updating ad: %w", err)
 	}
 
 	return nil
+}
+
+// GetActive returns all currently active ads
+func (r *AdsRepository) GetActive() ([]types.Ad, error) {
+	results, err := r.db.Query("SELECT id, image_url, clickthrough_url FROM ads")
+	if err != nil {
+		return []types.Ad{}, fmt.Errorf("Error fetching active ads: %w", err)
+	}
+
+	ads := []types.Ad{}
+	for results.Next() {
+		var ad types.Ad
+		err = results.Scan(&ad.ID, &ad.ImageURL, &ad.ClickThroughURL)
+		if err != nil {
+			return []types.Ad{}, fmt.Errorf("Error reading active ad: %w", err)
+		}
+
+		ads = append(ads, ad)
+	}
+
+	return ads, nil
 }
