@@ -10,4 +10,5 @@ var AdServerBaseURL string
 func ConfigureRouter(router *mux.Router) {
 	router.HandleFunc(CreateURL, Create).Methods(CreateMethod)
 	router.HandleFunc(UpdateURL, Update).Methods(UpdateMethod)
+	router.HandleFunc(ListActiveURL, ListActive).Methods(ListActiveMethod)
 }
