@@ -6,16 +6,16 @@ type ActiveAdGetter interface {
 	GetActive() ([]types.Ad, error)
 }
 
-type ListActiveCommand struct {
+type ListActive struct {
 	adGetter ActiveAdGetter
 }
 
-func NewListActiveCommand(adGetter ActiveAdGetter) *ListActiveCommand {
-	return &ListActiveCommand{
+func NewListActive(adGetter ActiveAdGetter) *ListActive {
+	return &ListActive{
 		adGetter: adGetter,
 	}
 }
 
-func (c *ListActiveCommand) Execute() ([]types.Ad, error) {
+func (c *ListActive) Execute() ([]types.Ad, error) {
 	return c.adGetter.GetActive()
 }

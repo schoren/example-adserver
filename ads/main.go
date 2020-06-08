@@ -74,7 +74,7 @@ func main() {
 		Notifier:  kafkaNotifier,
 	}
 
-	handlers.ListActiveCommand = commands.NewListActiveCommand(adsRepository)
+	handlers.ListActiveCommand = commands.NewListActive(adsRepository)
 
 	router := mux.NewRouter()
 	handlers.ConfigureRouter(router.PathPrefix("/ads").Subrouter())

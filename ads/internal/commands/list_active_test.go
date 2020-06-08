@@ -45,9 +45,9 @@ func (m *MockActiveAdGetter) ExpectGetActiveError() {
 	m.On("GetActive").Return([]types.Ad{}, listActiveExamplePersisterError)
 }
 
-func listActiveSetup() (*commands.ListActiveCommand, *MockActiveAdGetter) {
+func listActiveSetup() (*commands.ListActive, *MockActiveAdGetter) {
 	adsGetter := new(MockActiveAdGetter)
-	cmd := commands.NewListActiveCommand(adsGetter)
+	cmd := commands.NewListActive(adsGetter)
 
 	return cmd, adsGetter
 }
