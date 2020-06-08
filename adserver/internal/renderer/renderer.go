@@ -1,6 +1,6 @@
 package renderer
 
-import "github.com/schoren/example-adserver/types"
+import "github.com/schoren/example-adserver/pkg/types"
 
 // Renderer can return a string representation of an ad, ready to be served
 type Renderer interface {

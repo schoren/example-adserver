@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/schoren/example-adserver/types"
+	"github.com/schoren/example-adserver/pkg/types"
 	"gopkg.in/resty.v1"
 )
 

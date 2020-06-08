@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/schoren/example-adserver/types"
+	"github.com/schoren/example-adserver/pkg/types"
 )
 
 // Define HTTP Method and URL

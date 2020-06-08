@@ -1,6 +1,6 @@
 package commands
 
-import "github.com/schoren/example-adserver/types"
+import "github.com/schoren/example-adserver/pkg/types"
 
 type ActiveAdGetter interface {
 	GetActive() ([]types.Ad, error)

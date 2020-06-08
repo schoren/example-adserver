@@ -6,7 +6,7 @@ import (
 
 	"github.com/Shopify/sarama"
 	"github.com/schoren/example-adserver/adserver/internal/commands"
-	"github.com/schoren/example-adserver/types"
+	"github.com/schoren/example-adserver/pkg/types"
 )
 
 type Updater interface {

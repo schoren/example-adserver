@@ -3,7 +3,7 @@ package renderer
 import (
 	"fmt"
 
-	"github.com/schoren/example-adserver/types"
+	"github.com/schoren/example-adserver/pkg/types"
 )
 
 // Image is a renderer that renders an Image ad as an HTML image
