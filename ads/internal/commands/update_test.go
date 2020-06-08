@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/schoren/example-adserver/ads/internal/commands"
-	"github.com/schoren/example-adserver/types"
+	"github.com/schoren/example-adserver/pkg/types"
 )
 
 type MockUpdatePersister struct {

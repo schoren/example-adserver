@@ -2,7 +2,7 @@ package memory
 
 import (
 	"github.com/schoren/example-adserver/adserver/internal/adstore"
-	"github.com/schoren/example-adserver/types"
+	"github.com/schoren/example-adserver/pkg/types"
 )
 
 // AdStore is an in memory implementation of the AdStore

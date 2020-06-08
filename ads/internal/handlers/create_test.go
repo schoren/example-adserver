@@ -11,8 +11,8 @@ import (
 
 	"github.com/schoren/example-adserver/ads/internal/commands"
 	"github.com/schoren/example-adserver/ads/internal/handlers"
-	"github.com/schoren/example-adserver/testutil/http/request"
-	"github.com/schoren/example-adserver/types"
+	"github.com/schoren/example-adserver/pkg/testutil/http/request"
+	"github.com/schoren/example-adserver/pkg/types"
 )
 
 var (

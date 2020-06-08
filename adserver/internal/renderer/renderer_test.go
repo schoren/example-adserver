@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/schoren/example-adserver/adserver/internal/renderer"
-	"github.com/schoren/example-adserver/types"
+	"github.com/schoren/example-adserver/pkg/types"
 	"github.com/stretchr/testify/assert"
 )
 

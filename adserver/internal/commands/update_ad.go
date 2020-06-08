@@ -2,7 +2,7 @@ package commands
 
 import (
 	"github.com/schoren/example-adserver/adserver/internal/adstore"
-	"github.com/schoren/example-adserver/types"
+	"github.com/schoren/example-adserver/pkg/types"
 )
 
 type UpdateAdPayload struct {

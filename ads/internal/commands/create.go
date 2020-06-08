@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 
-	"github.com/schoren/example-adserver/types"
+	"github.com/schoren/example-adserver/pkg/types"
 )
 
 type CreatePayload struct {
