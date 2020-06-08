@@ -15,6 +15,7 @@ import (
 	"github.com/schoren/example-adserver/ads/internal/platform/kafka"
 	"github.com/schoren/example-adserver/ads/internal/platform/mysql"
 	"github.com/schoren/example-adserver/pkg/config"
+	"github.com/schoren/example-adserver/pkg/retry"
 )
 
 type appConfig struct {
@@ -27,10 +28,6 @@ type appConfig struct {
 func main() {
 	cfg := appConfig{}
 	config.MustReadFromEnv(&cfg)
-
-	// Ugly fix for docker-compose start order: just wait a few secs for kafka to be ready
-	time.Sleep(10 * time.Second)
-	log.Println("Waited enough, try to connect to", cfg.KafkaBootstrapServers)
 
 	db := openDBConnection(cfg)
 	defer db.Close()
@@ -84,10 +81,21 @@ func connectKafkaProducer(cfg appConfig) sarama.SyncProducer {
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Retry.Max = 10
 	config.Producer.Return.Successes = true
-	kafkaProducer, err := sarama.NewSyncProducer(cfg.KafkaBootstrapServers, config)
+	var kafkaProducer sarama.SyncProducer
+	err := retry.Do(func() error {
+		var err error
+		kafkaProducer, err = sarama.NewSyncProducer(cfg.KafkaBootstrapServers, config)
+		if err != nil {
+			err = fmt.Errorf("cannot connect to kafka bootstrap servers: %v", err)
+			log.Println(err)
+			return err
+		}
+		log.Println("Connected to kafka cluster")
+		return nil
+	}, 5*time.Second, 5)
 
 	if err != nil {
-		panic(fmt.Errorf("cannot connect to kafka bootstrap servers: %w", err))
+		panic(err)
 	}
 
 	return kafkaProducer

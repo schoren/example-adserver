@@ -18,6 +18,7 @@ import (
 	"github.com/schoren/example-adserver/adserver/internal/platform/memory"
 	"github.com/schoren/example-adserver/adserver/internal/platform/rest"
 	"github.com/schoren/example-adserver/pkg/config"
+	"github.com/schoren/example-adserver/pkg/retry"
 )
 
 type appConfig struct {
@@ -29,10 +30,6 @@ type appConfig struct {
 func main() {
 	cfg := appConfig{}
 	config.MustReadFromEnv(&cfg)
-
-	// Ugly fix for docker-compose start order: just wait a few secs for kafka to be ready
-	time.Sleep(15 * time.Second)
-	log.Println("Waited enough, try to connect to", cfg.KafkaBootstrapServers)
 
 	adStore := createAdStore(cfg)
 
@@ -53,9 +50,17 @@ func createAdStore(cfg appConfig) adstore.GetSetter {
 	adLister := rest.NewAdLister(cfg.AdServiceBaseURL)
 	adStore := memory.NewAdStore()
 
-	err := adstore.Warmup(adStore, adLister)
+	err := retry.Do(func() error {
+		err := adstore.Warmup(adStore, adLister)
+		if err != nil {
+			err := fmt.Errorf("Cannot Warmup AdStore: %v", err)
+			log.Println(err)
+			return err
+		}
+		return nil
+	}, 5*time.Second, 5)
 	if err != nil {
-		panic(fmt.Errorf("Cannot Warmup AdStore: %w", err))
+		panic(err)
 	}
 
 	return adStore
@@ -69,10 +74,23 @@ func setupAdUpdater(cfg appConfig, adStore adstore.GetSetter) *kafka.AdUpdater {
 	kfkConfig := sarama.NewConfig()
 	kfkConfig.Version = sarama.MaxVersion
 
+	var client sarama.ConsumerGroup
 	ctx := context.Background()
-	client, err := sarama.NewConsumerGroup(cfg.KafkaBootstrapServers, consumerGroup, kfkConfig)
+
+	err := retry.Do(func() error {
+		var err error
+		client, err = sarama.NewConsumerGroup(cfg.KafkaBootstrapServers, consumerGroup, kfkConfig)
+		if err != nil {
+			err = fmt.Errorf("Error creating Kafka consumer group client: %v", err)
+			log.Println(err)
+			return err
+		}
+		log.Println("Connected to kafka cluster")
+		return nil
+	}, 5*time.Second, 5)
+
 	if err != nil {
-		panic(fmt.Errorf("Error creating Kafka consumer group client: %w", err))
+		panic(err)
 	}
 
 	wg := &sync.WaitGroup{}
