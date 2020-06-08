@@ -8,41 +8,29 @@ import (
 	"time"
 
 	"github.com/Shopify/sarama"
-	"github.com/caarlos0/env/v6"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/schoren/example-adserver/ads/internal/commands"
 	"github.com/schoren/example-adserver/ads/internal/handlers"
 	"github.com/schoren/example-adserver/ads/internal/platform/kafka"
 	"github.com/schoren/example-adserver/ads/internal/platform/mysql"
-	"gopkg.in/validator.v2"
+	"github.com/schoren/example-adserver/pkg/config"
 )
 
-type config struct {
+type appConfig struct {
 	AdserverBaseURL       string   `env:"ADSERVER_BASE_URL" validate:"nonzero"`
 	DBDSN                 string   `env:"DB_DSN" validate:"nonzero"`
 	SrvAddr               string   `env:"SRV_ADDR" validate:"nonzero"`
 	KafkaBootstrapServers []string `env:"KAFKA_BOOTSTRAP_SERVERS" envSeparator:"," validate:"nonzero"`
 }
 
-func readEnvConfig(cfg interface{}) {
-	if err := env.Parse(cfg); err != nil {
-		panic(fmt.Errorf("cannot parse env config: %w", err))
-	}
-
-	if errs := validator.Validate(cfg); errs != nil {
-		panic(fmt.Errorf("invalid env config: %w", errs))
-	}
-}
-
 func main() {
+	cfg := appConfig{}
+	config.MustReadFromEnv(&cfg)
+
 	// Ugly fix for docker-compose start order: just wait a few secs for kafka to be ready
 	time.Sleep(10 * time.Second)
 	log.Println("Waited enough, try to connect to", cfg.KafkaBootstrapServers)
-
-	cfg := config{}
-
-	readEnvConfig(&cfg)
 
 	db := openDBConnection(cfg)
 	defer db.Close()
@@ -57,6 +45,7 @@ func main() {
 	log.Fatal(srv.ListenAndServe())
 }
 
+func setupHandlers(cfg appConfig, db *sql.DB, kafkaProducer sarama.SyncProducer) {
 	kafkaNotifier := kafka.NewNotifier(kafkaProducer, config.KafkaTopicsAdUpdates)
 	adsRepository := mysql.NewAdsRepository(db)
 
@@ -67,11 +56,11 @@ func main() {
 
 }
 
-func setupHTTPServer(cfg config) *http.Server {
+func setupHTTPServer(cfg appConfig) *http.Server {
 	router := mux.NewRouter()
 	handlers.ConfigureRouter(router.PathPrefix("/ads").Subrouter())
 
-	srv := &http.Server{
+	return &http.Server{
 		Handler: router,
 		Addr:    cfg.SrvAddr,
 		// Good practice: enforce timeouts for servers you create!
@@ -80,7 +69,7 @@ func setupHTTPServer(cfg config) *http.Server {
 	}
 }
 
-func openDBConnection(cfg config) *sql.DB {
+func openDBConnection(cfg appConfig) *sql.DB {
 	db, err := sql.Open("mysql", cfg.DBDSN)
 	if err != nil {
 		panic(fmt.Errorf("cannot connect to mysql database: %w", err))
@@ -89,7 +78,7 @@ func openDBConnection(cfg config) *sql.DB {
 	return db
 }
 
-func connectKafkaProducer(cfg config) sarama.SyncProducer {
+func connectKafkaProducer(cfg appConfig) sarama.SyncProducer {
 	config := sarama.NewConfig()
 
 	config.Producer.RequiredAcks = sarama.WaitForAll
