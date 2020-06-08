@@ -17,18 +17,25 @@ type UpdatePersister interface {
 
 // Update is a command used to Update a new Ad
 type Update struct {
-	Persister UpdatePersister
-	Notifier  Notifier
+	persister UpdatePersister
+	notifier  Notifier
+}
+
+func NewUpdate(p UpdatePersister, n Notifier) *Update {
+	return &Update{
+		persister: p,
+		notifier:  n,
+	}
 }
 
 // Execute the Update command with the given payload
 func (c Update) Execute(data UpdatePayload) error {
-	err := c.Persister.Update(data.Ad)
+	err := c.persister.Update(data.Ad)
 	if err != nil {
 		return fmt.Errorf("Persister.Update error when updating ad: %w", err)
 	}
 
-	c.Notifier.AdUpdate(data.Ad)
+	c.notifier.AdUpdate(data.Ad)
 
 	return nil
 }

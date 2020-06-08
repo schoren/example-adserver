@@ -65,12 +65,7 @@ func main() {
 
 	handlers.AdServerBaseURL = adserverBaseURL
 	handlers.CreateCommand = commands.NewCreate(adsRepository, kafkaNotifier)
-
-	handlers.UpdateCommand = &commands.Update{
-		Persister: adsRepository,
-		Notifier:  kafkaNotifier,
-	}
-
+	handlers.UpdateCommand = commands.NewUpdate(adsRepository, kafkaNotifier)
 	handlers.ListActiveCommand = commands.NewListActive(adsRepository)
 
 	router := mux.NewRouter()
