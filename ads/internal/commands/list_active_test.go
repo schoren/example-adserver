@@ -45,16 +45,15 @@ func (m *MockActiveAdGetter) ExpectGetActiveError() {
 	m.On("GetActive").Return([]types.Ad{}, listActiveExamplePersisterError)
 }
 
-func listActiveSetup() (*commands.ListActiveCommand, *MockActiveAdGetter) {
+func listActiveSetup() (*commands.ListActive, *MockActiveAdGetter) {
 	adsGetter := new(MockActiveAdGetter)
-	cmd := commands.NewListActiveCommand(adsGetter)
+	cmd := commands.NewListActive(adsGetter)
 
 	return cmd, adsGetter
 }
 
 func TestListActiveOK(t *testing.T) {
 	cmd, adsGetter := listActiveSetup()
-
 	adsGetter.ExpectGetActiveSuccess(listActiveExampleAds)
 
 	ads, err := cmd.Execute()
@@ -65,7 +64,6 @@ func TestListActiveOK(t *testing.T) {
 
 func TestListActiveAdsGetterError(t *testing.T) {
 	cmd, adsGetter := listActiveSetup()
-
 	adsGetter.ExpectGetActiveError()
 
 	ads, err := cmd.Execute()

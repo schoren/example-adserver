@@ -49,7 +49,7 @@ var (
 )
 
 type createFixtures struct {
-	command   commands.Create
+	command   *commands.Create
 	persister *MockCreatePersister
 	notifier  *MockNotifier
 }
@@ -62,10 +62,7 @@ func (f createFixtures) assertMockExpectations(t *testing.T) {
 func createSetup() createFixtures {
 	p := new(MockCreatePersister)
 	n := new(MockNotifier)
-	c := commands.Create{
-		Persister: p,
-		Notifier:  n,
-	}
+	c := commands.NewCreate(p, n)
 
 	return createFixtures{c, p, n}
 }
@@ -76,6 +73,7 @@ func TestCreateOK(t *testing.T) {
 	f.notifier.ExpectAdUpdate(createExamplePersistedAd)
 
 	ad, err := f.command.Execute(createExamplePayload)
+
 	assert.NoError(t, err)
 	assert.Equal(t, createExamplePersistedAd, ad)
 	f.assertMockExpectations(t)
@@ -86,6 +84,7 @@ func TestCreatePersisterFailure(t *testing.T) {
 	f.persister.ExpectCreateError(createExampleAd, createExamplePersisterError)
 
 	ad, err := f.command.Execute(createExamplePayload)
+
 	assert.True(t, errors.Is(err, createExamplePersisterError))
 	assert.Equal(t, types.Ad{}, ad)
 	f.assertMockExpectations(t)

@@ -9,12 +9,16 @@ type UpdateAdPayload struct {
 	Ad types.Ad
 }
 
-// UpdateAdCommand updates the adstore with new or updated ads
-type UpdateAdCommand struct {
+// UpdateAd updates the adstore with new or updated ads
+type UpdateAd struct {
 	AdStore adstore.Setter
 }
 
-func (c *UpdateAdCommand) Execute(payload UpdateAdPayload) error {
+func NewUpdateAd(adStore adstore.Setter) *UpdateAd {
+	return &UpdateAd{AdStore: adStore}
+}
+
+func (c *UpdateAd) Execute(payload UpdateAdPayload) error {
 	c.AdStore.Set(payload.Ad)
 	return nil
 }

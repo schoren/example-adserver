@@ -41,7 +41,6 @@ func (adupdater *AdUpdater) Cleanup(sarama.ConsumerGroupSession) error {
 // ConsumeClaim must start a consumer loop of ConsumerGroupClaim's Messages().
 func (adupdater *AdUpdater) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for message := range claim.Messages() {
-		log.Printf("Received ad update with value `%s`", message.Value)
 		var updatedAd types.Ad
 		err := json.Unmarshal(message.Value, &updatedAd)
 		if err != nil {

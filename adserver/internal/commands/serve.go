@@ -11,13 +11,17 @@ type emptyRenderer struct{}
 
 func (r emptyRenderer) Render() string { return "" }
 
-// ServeCommand tries to create a Renderer from the given ad ID
-type ServeCommand struct {
-	AdStore adstore.Getter
+// Serve tries to create a Renderer from the given ad ID
+type Serve struct {
+	adStore adstore.Getter
 }
 
-func (c *ServeCommand) Execute(adID int) (renderer.Renderer, error) {
-	ad, err := c.AdStore.Get(adID)
+func NewServe(adStore adstore.Getter) *Serve {
+	return &Serve{adStore: adStore}
+}
+
+func (c *Serve) Execute(adID int) (renderer.Renderer, error) {
+	ad, err := c.adStore.Get(adID)
 	if err != nil {
 		return emptyRenderer{}, fmt.Errorf("Cannot get ad with ID %d: %w", adID, err)
 	}

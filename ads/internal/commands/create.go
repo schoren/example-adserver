@@ -17,18 +17,25 @@ type CreatePersister interface {
 
 // Create is a command used to create a new Ad
 type Create struct {
-	Persister CreatePersister
-	Notifier  Notifier
+	persister CreatePersister
+	notifier  Notifier
+}
+
+func NewCreate(p CreatePersister, n Notifier) *Create {
+	return &Create{
+		persister: p,
+		notifier:  n,
+	}
 }
 
 // Execute the Create command with the given payload
-func (c Create) Execute(data CreatePayload) (types.Ad, error) {
-	ad, err := c.Persister.Create(data.Ad)
+func (c *Create) Execute(data CreatePayload) (types.Ad, error) {
+	ad, err := c.persister.Create(data.Ad)
 	if err != nil {
 		return types.Ad{}, fmt.Errorf("Persister.Create error when creating ad: %w", err)
 	}
 
-	c.Notifier.AdUpdate(ad)
+	c.notifier.AdUpdate(ad)
 
 	return ad, nil
 }

@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -16,77 +14,81 @@ import (
 	"github.com/schoren/example-adserver/ads/internal/handlers"
 	"github.com/schoren/example-adserver/ads/internal/platform/kafka"
 	"github.com/schoren/example-adserver/ads/internal/platform/mysql"
+	"github.com/schoren/example-adserver/pkg/config"
 )
 
+type appConfig struct {
+	AdserverBaseURL       string   `env:"ADSERVER_BASE_URL" validate:"nonzero"`
+	DBDSN                 string   `env:"DB_DSN" validate:"nonzero"`
+	SrvAddr               string   `env:"SRV_ADDR" validate:"nonzero"`
+	KafkaBootstrapServers []string `env:"KAFKA_BOOTSTRAP_SERVERS" envSeparator:"," validate:"nonzero"`
+}
+
 func main() {
-
-	adserverBaseURL := os.Getenv("ADSERVER_BASE_URL")
-	if adserverBaseURL == "" {
-		panic(fmt.Errorf("ADSERVER_BASE_URL not provided"))
-	}
-
-	dbDSN := os.Getenv("DB_DSN")
-	if dbDSN == "" {
-		panic(fmt.Errorf("DB_DSN not provided"))
-	}
-
-	srvAddr := os.Getenv("SRV_ADDR")
-	if srvAddr == "" {
-		panic(fmt.Errorf("SRV_ADDR not provided"))
-	}
-
-	kafkaBootstrapServers := os.Getenv("KAFKA_BOOTSTRAP_SERVERS")
-	if kafkaBootstrapServers == "" {
-		panic(fmt.Errorf("SRV_ADDR not provided"))
-	}
-
-	db, err := sql.Open("mysql", dbDSN)
-	if err != nil {
-		panic(fmt.Errorf("cannot connect to mysql database: %w", err))
-	}
-	defer db.Close()
-
-	config := sarama.NewConfig()
-	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Producer.Retry.Max = 10
-	config.Producer.Return.Successes = true
+	cfg := appConfig{}
+	config.MustReadFromEnv(&cfg)
 
 	// Ugly fix for docker-compose start order: just wait a few secs for kafka to be ready
 	time.Sleep(10 * time.Second)
-	log.Println("Waited enough, try to connect to", strings.Split(kafkaBootstrapServers, ","))
-	kafkaProducer, err := sarama.NewSyncProducer(strings.Split(kafkaBootstrapServers, ","), config)
-	if err != nil {
-		panic(fmt.Errorf("cannot connect to kafka bootstrap servers: %w", err))
-	}
+	log.Println("Waited enough, try to connect to", cfg.KafkaBootstrapServers)
+
+	db := openDBConnection(cfg)
+	defer db.Close()
+
+	kafkaProducer := connectKafkaProducer(cfg)
 	defer kafkaProducer.Close()
 
+	setupHandlers(cfg, db, kafkaProducer)
+	srv := setupHTTPServer(cfg)
+
+	log.Printf("Starting server on %s", srv.Addr)
+	log.Fatal(srv.ListenAndServe())
+}
+
+func setupHandlers(cfg appConfig, db *sql.DB, kafkaProducer sarama.SyncProducer) {
+	kafkaNotifier := kafka.NewNotifier(kafkaProducer, config.KafkaTopicsAdUpdates)
 	adsRepository := mysql.NewAdsRepository(db)
-	kafkaNotifier := kafka.NewNotifier(kafkaProducer)
 
-	handlers.AdServerBaseURL = adserverBaseURL
-	handlers.CreateCommand = &commands.Create{
-		Persister: adsRepository,
-		Notifier:  kafkaNotifier,
-	}
+	handlers.AdServerBaseURL = cfg.AdserverBaseURL
+	handlers.CreateCommand = commands.NewCreate(adsRepository, kafkaNotifier)
+	handlers.UpdateCommand = commands.NewUpdate(adsRepository, kafkaNotifier)
+	handlers.ListActiveCommand = commands.NewListActive(adsRepository)
 
-	handlers.UpdateCommand = &commands.Update{
-		Persister: adsRepository,
-		Notifier:  kafkaNotifier,
-	}
+}
 
-	handlers.ListActiveCommand = commands.NewListActiveCommand(adsRepository)
-
+func setupHTTPServer(cfg appConfig) *http.Server {
 	router := mux.NewRouter()
 	handlers.ConfigureRouter(router.PathPrefix("/ads").Subrouter())
 
-	srv := &http.Server{
+	return &http.Server{
 		Handler: router,
-		Addr:    srvAddr,
+		Addr:    cfg.SrvAddr,
 		// Good practice: enforce timeouts for servers you create!
 		WriteTimeout: 2 * time.Second,
 		ReadTimeout:  2 * time.Second,
 	}
+}
 
-	log.Printf("Starting server on %s", srvAddr)
-	log.Fatal(srv.ListenAndServe())
+func openDBConnection(cfg appConfig) *sql.DB {
+	db, err := sql.Open("mysql", cfg.DBDSN)
+	if err != nil {
+		panic(fmt.Errorf("cannot connect to mysql database: %w", err))
+	}
+
+	return db
+}
+
+func connectKafkaProducer(cfg appConfig) sarama.SyncProducer {
+	config := sarama.NewConfig()
+
+	config.Producer.RequiredAcks = sarama.WaitForAll
+	config.Producer.Retry.Max = 10
+	config.Producer.Return.Successes = true
+	kafkaProducer, err := sarama.NewSyncProducer(cfg.KafkaBootstrapServers, config)
+
+	if err != nil {
+		panic(fmt.Errorf("cannot connect to kafka bootstrap servers: %w", err))
+	}
+
+	return kafkaProducer
 }

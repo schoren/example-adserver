@@ -1,6 +1,10 @@
 package adstore
 
-import "github.com/schoren/example-adserver/types"
+import (
+	"fmt"
+
+	"github.com/schoren/example-adserver/types"
+)
 
 // Getter can fetch ads from the store
 type Getter interface {
@@ -17,3 +21,5 @@ type GetSetter interface {
 	Getter
 	Setter
 }
+
+var ErrNotFound = fmt.Errorf("Ad not found")

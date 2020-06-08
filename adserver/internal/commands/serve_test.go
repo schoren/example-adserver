@@ -20,16 +20,14 @@ var (
 	serveExampleAdStoreError = fmt.Errorf("Some datastore error")
 )
 
-func setupServe() (commands.ServeCommand, *MockAdStore) {
+func setupServe() (*commands.Serve, *MockAdStore) {
 	mockAdStore := new(MockAdStore)
-	cmd := commands.ServeCommand{
-		AdStore: mockAdStore,
-	}
+	cmd := commands.NewServe(mockAdStore)
 
 	return cmd, mockAdStore
 }
 
-func TestServeCommandOK(t *testing.T) {
+func TestServeOK(t *testing.T) {
 	cmd, mockAdStore := setupServe()
 	mockAdStore.ExpectGetSuccess(serveExampleAd.ID, serveExampleAd)
 
@@ -40,7 +38,7 @@ func TestServeCommandOK(t *testing.T) {
 	mockAdStore.AssertExpectations(t)
 }
 
-func TestServeCommandAdStoreError(t *testing.T) {
+func TestServeAdStoreError(t *testing.T) {
 	cmd, mockAdStore := setupServe()
 	mockAdStore.ExpectGetError(serveExampleAd.ID)
 

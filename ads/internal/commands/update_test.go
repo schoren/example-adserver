@@ -44,7 +44,7 @@ var (
 )
 
 type UpdateFixtures struct {
-	command   commands.Update
+	command   *commands.Update
 	persister *MockUpdatePersister
 	notifier  *MockNotifier
 }
@@ -57,10 +57,7 @@ func (f UpdateFixtures) assertMockExpectations(t *testing.T) {
 func UpdateSetup() UpdateFixtures {
 	p := new(MockUpdatePersister)
 	n := new(MockNotifier)
-	c := commands.Update{
-		Persister: p,
-		Notifier:  n,
-	}
+	c := commands.NewUpdate(p, n)
 
 	return UpdateFixtures{c, p, n}
 }
@@ -71,6 +68,7 @@ func TestUpdateOK(t *testing.T) {
 	f.notifier.ExpectAdUpdate(updateExampleAd)
 
 	err := f.command.Execute(updateExamplePayload)
+
 	assert.NoError(t, err)
 	f.assertMockExpectations(t)
 }
@@ -80,6 +78,7 @@ func TestUpdatePersisterFailure(t *testing.T) {
 	f.persister.ExpectUpdateError(updateExampleAd, updateExamplePersisterError)
 
 	err := f.command.Execute(updateExamplePayload)
+
 	assert.True(t, errors.Is(err, updateExamplePersisterError))
 	f.assertMockExpectations(t)
 }

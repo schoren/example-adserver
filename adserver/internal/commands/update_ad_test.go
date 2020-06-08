@@ -20,16 +20,14 @@ var (
 	}
 )
 
-func setupUpdateAd() (commands.UpdateAdCommand, *MockAdStore) {
+func setupUpdateAd() (*commands.UpdateAd, *MockAdStore) {
 	mockAdStore := new(MockAdStore)
-	cmd := commands.UpdateAdCommand{
-		AdStore: mockAdStore,
-	}
+	cmd := commands.NewUpdateAd(mockAdStore)
 
 	return cmd, mockAdStore
 }
 
-func TestUpdateAdCommand(t *testing.T) {
+func TestUpdateAd(t *testing.T) {
 	cmd, as := setupUpdateAd()
 	as.ExpectSet(updateAdExampleAd)
 

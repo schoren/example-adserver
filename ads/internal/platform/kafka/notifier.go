@@ -11,18 +11,18 @@ import (
 // Notifier notifier
 type Notifier struct {
 	producer sarama.SyncProducer
+	topic    string
 }
 
-func NewNotifier(producer sarama.SyncProducer) *Notifier {
-	return &Notifier{producer}
+func NewNotifier(producer sarama.SyncProducer, topic string) *Notifier {
+	return &Notifier{producer, topic}
 }
 
 // AdUpdate notifies subscriber about changes in ads
 func (n *Notifier) AdUpdate(inputAd types.Ad) {
 	encoded, _ := json.Marshal(inputAd)
-	log.Println("Encoded JSON is", string(encoded))
 	_, _, err := n.producer.SendMessage(&sarama.ProducerMessage{
-		Topic: "ad-updates",
+		Topic: n.topic,
 		Value: sarama.StringEncoder(string(encoded)),
 	})
 
