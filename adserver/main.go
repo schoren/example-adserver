@@ -17,6 +17,7 @@ import (
 	"github.com/schoren/example-adserver/adserver/internal/commands"
 	"github.com/schoren/example-adserver/adserver/internal/handlers"
 	"github.com/schoren/example-adserver/adserver/internal/platform/kafka"
+	"github.com/schoren/example-adserver/adserver/internal/platform/memory"
 	"github.com/schoren/example-adserver/adserver/internal/platform/rest"
 )
 
@@ -43,7 +44,7 @@ func main() {
 	log.Println("Waited enough, try to connect to", strings.Split(kafkaBootstrapServers, ","))
 
 	adLister := rest.NewAdLister(adServiceBaseURL)
-	adStore := adstore.NewInMemory()
+	adStore := memory.NewAdStore()
 
 	err := adstore.Warmup(adStore, adLister)
 	if err != nil {
