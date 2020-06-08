@@ -20,7 +20,6 @@ func NewNotifier(producer sarama.SyncProducer) *Notifier {
 // AdUpdate notifies subscriber about changes in ads
 func (n *Notifier) AdUpdate(inputAd types.Ad) {
 	encoded, _ := json.Marshal(inputAd)
-	log.Println("Encoded JSON is", string(encoded))
 	_, _, err := n.producer.SendMessage(&sarama.ProducerMessage{
 		Topic: "ad-updates",
 		Value: sarama.StringEncoder(string(encoded)),
