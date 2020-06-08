@@ -20,6 +20,8 @@ var (
 
 	adCreateURL string
 	adUpdateURL string
+
+	defaultExampleAdURL = ""
 )
 
 const (
@@ -35,6 +37,8 @@ const (
 
 	exampleCreatedAdServed = `<a href="https://github.com"><img src="https://via.placeholder.com/300x300"></a>`
 	exampleUpdatedAdServed = `<a href="https://github.com/?updated=1"><img src="https://via.placeholder.com/100x100"></a>`
+
+	defaultAdExampleServed = `<a href="http://example.org/1.html"><img src="http://example.org/1.png"></a>`
 )
 
 func init() {
@@ -43,10 +47,30 @@ func init() {
 
 	adCreateURL = fmt.Sprintf("%s/", adServiceBaseURL)
 	adUpdateURL = fmt.Sprintf("%s/{id}", adServiceBaseURL)
+
+	defaultExampleAdURL = fmt.Sprintf("%s/1", adserverBaseURL)
 }
 
 func getAdUpdateURL(adID string) string {
 	return strings.Replace(adUpdateURL, "{id}", adID, 1)
+}
+
+func TestAdserverIsWarmedUpOnStart(t *testing.T) {
+	t.Parallel()
+
+	// We know that the DB is created with an example ad.
+	// Since it's not created throught the API, it won't ever be propagated through kafka.
+	// So, if the ad server has the ad, it was properly warmed up.
+
+	client := resty.New()
+	resp, err := client.R().Get(defaultExampleAdURL)
+	if err != nil {
+		t.Fatalf("Failed to get ad: %s", err.Error())
+	}
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode())
+	assert.Equal(t, defaultAdExampleServed, string(resp.Body()))
+
 }
 
 func TestAdCreateIsServedCorrectly(t *testing.T) {

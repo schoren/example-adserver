@@ -4,3 +4,5 @@ CREATE TABLE IF NOT EXISTS ads.ads (
     image_url VARCHAR(200) NOT NULL,
     clickthrough_url  VARCHAR(200) NOT NULL
 ) CHARACTER SET utf8 COLLATE utf8_bin;
+
+INSERT INTO ads.ads VALUES (1, "http://example.org/1.png", "http://example.org/1.html");

@@ -17,6 +17,7 @@ import (
 	"github.com/schoren/example-adserver/adserver/internal/commands"
 	"github.com/schoren/example-adserver/adserver/internal/handlers"
 	"github.com/schoren/example-adserver/adserver/internal/platform/kafka"
+	"github.com/schoren/example-adserver/adserver/internal/platform/rest"
 )
 
 var topics = []string{"ad-updates"}
@@ -32,7 +33,22 @@ func main() {
 		panic(fmt.Errorf("SRV_ADDR not provided"))
 	}
 
+	adServiceBaseURL := os.Getenv("AD_SERVICE_BASE_URL")
+	if adServiceBaseURL == "" {
+		panic(fmt.Errorf("AD_SERVICE_BASE_URL not provided"))
+	}
+
+	// Ugly fix for docker-compose start order: just wait a few secs for kafka to be ready
+	time.Sleep(15 * time.Second)
+	log.Println("Waited enough, try to connect to", strings.Split(kafkaBootstrapServers, ","))
+
+	adLister := rest.NewAdLister(adServiceBaseURL)
 	adStore := adstore.NewInMemory()
+
+	err := adstore.Warmup(adStore, adLister)
+	if err != nil {
+		panic(fmt.Errorf("Cannot Warmup AdStore: %w", err))
+	}
 
 	serveCommand := &commands.ServeCommand{AdStore: adStore}
 	updateAdCommand := &commands.UpdateAdCommand{AdStore: adStore}
@@ -41,10 +57,6 @@ func main() {
 
 	router := mux.NewRouter()
 	handlers.ConfigureRouter(router.PathPrefix("/").Subrouter())
-
-	// Ugly fix for docker-compose start order: just wait a few secs for kafka to be ready
-	time.Sleep(10 * time.Second)
-	log.Println("Waited enough, try to connect to", strings.Split(kafkaBootstrapServers, ","))
 
 	config := sarama.NewConfig()
 	config.Version = sarama.MaxVersion

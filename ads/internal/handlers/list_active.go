@@ -11,7 +11,7 @@ import (
 // Define HTTP Method and URL
 const (
 	ListActiveMethod = http.MethodGet
-	ListActiveURL    = "/"
+	ListActiveURL    = "/active"
 )
 
 // ActiveLister handles the creation of a given ad
