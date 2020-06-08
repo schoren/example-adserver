@@ -38,7 +38,7 @@ func main() {
 
 	setupHandlers(cfg, adStore)
 
-	adUpdater := setupKafkaConsumer(cfg, adStore)
+	adUpdater := setupAdUpdater(cfg, adStore)
 
 	<-adUpdater.Ready // Await till the consumer has been set up
 	log.Println("Kafka consumer up and running!...")
@@ -61,7 +61,7 @@ func createAdStore(cfg appConfig) adstore.GetSetter {
 	return adStore
 }
 
-func setupKafkaConsumer(cfg appConfig, adStore adstore.GetSetter) *kafka.AdUpdater {
+func setupAdUpdater(cfg appConfig, adStore adstore.GetSetter) *kafka.AdUpdater {
 	adUpdater := kafka.NewAdUpdater(commands.NewUpdateAd(adStore))
 
 	consumerGroup := "adserver-" + uuid.New().String()
