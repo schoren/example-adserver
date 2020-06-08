@@ -51,7 +51,7 @@ func main() {
 		panic(fmt.Errorf("Cannot Warmup AdStore: %w", err))
 	}
 
-	serveCommand := &commands.ServeCommand{AdStore: adStore}
+	serveCommand := &commands.NewServe(adStore)
 	updateAdCommand := &commands.UpdateAdCommand{AdStore: adStore}
 
 	handlers.ServeCommand = serveCommand
