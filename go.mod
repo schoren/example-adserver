@@ -9,4 +9,5 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.7.4
 	github.com/stretchr/testify v1.6.1
+	gopkg.in/resty.v1 v1.12.0
 )
