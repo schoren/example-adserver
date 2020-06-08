@@ -58,7 +58,7 @@ func main() {
 	adUpdater := kafka.NewAdUpdater(commands.NewUpdateAd(adStore))
 
 	ctx := context.Background()
-	client, err := sarama.NewConsumerGroup(strings.Split(kafkaBootstrapServers, ","), "adserver-"+uuid.New().String(), config)
+	client, err := sarama.NewConsumerGroup(cfg.KafkaBootstrapServers, consumerGroup, kfkConfig)
 	if err != nil {
 		panic(fmt.Errorf("Error creating Kafka consumer group client: %w", err))
 	}

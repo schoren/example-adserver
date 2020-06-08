@@ -57,8 +57,7 @@ func main() {
 	log.Fatal(srv.ListenAndServe())
 }
 
-func setupHandlers(cfg config, db *sql.DB, kafkaProducer sarama.SyncProducer) {
-	kafkaNotifier := kafka.NewNotifier(kafkaProducer)
+	kafkaNotifier := kafka.NewNotifier(kafkaProducer, config.KafkaTopicsAdUpdates)
 	adsRepository := mysql.NewAdsRepository(db)
 
 	handlers.AdServerBaseURL = cfg.AdserverBaseURL
