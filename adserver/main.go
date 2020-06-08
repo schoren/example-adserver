@@ -67,32 +67,9 @@ func createAdStore(cfg appConfig) adstore.GetSetter {
 }
 
 func setupAdUpdater(cfg appConfig, adStore adstore.GetSetter) *kafka.AdUpdater {
+	client := setupKafkaConsumer(cfg)
 	adUpdater := kafka.NewAdUpdater(commands.NewUpdateAd(adStore))
-
-	consumerGroup := "adserver-" + uuid.New().String()
-
-	kfkConfig := sarama.NewConfig()
-	kfkConfig.Version = sarama.MaxVersion
-
-	var client sarama.ConsumerGroup
 	ctx := context.Background()
-
-	err := retry.Do(func() error {
-		var err error
-		client, err = sarama.NewConsumerGroup(cfg.KafkaBootstrapServers, consumerGroup, kfkConfig)
-		if err != nil {
-			err = fmt.Errorf("Error creating Kafka consumer group client: %v", err)
-			log.Println(err)
-			return err
-		}
-		log.Println("Connected to kafka cluster")
-		return nil
-	}, 5*time.Second, 5)
-
-	if err != nil {
-		panic(err)
-	}
-
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
@@ -112,6 +89,32 @@ func setupAdUpdater(cfg appConfig, adStore adstore.GetSetter) *kafka.AdUpdater {
 	}()
 
 	return adUpdater
+}
+
+func setupKafkaConsumer(cfg appConfig) sarama.ConsumerGroup {
+	consumerGroup := "adserver-" + uuid.New().String()
+
+	kfkConfig := sarama.NewConfig()
+	kfkConfig.Version = sarama.MaxVersion
+
+	var client sarama.ConsumerGroup
+	err := retry.Do(func() error {
+		var err error
+		client, err = sarama.NewConsumerGroup(cfg.KafkaBootstrapServers, consumerGroup, kfkConfig)
+		if err != nil {
+			err = fmt.Errorf("Error creating Kafka consumer group client: %v", err)
+			log.Println(err)
+			return err
+		}
+		log.Println("Connected to kafka cluster")
+		return nil
+	}, 5*time.Second, 5)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return client
 }
 
 func setupHandlers(cfg appConfig, adStore adstore.GetSetter) {
