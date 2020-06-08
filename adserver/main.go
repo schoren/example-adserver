@@ -51,17 +51,11 @@ func main() {
 		panic(fmt.Errorf("Cannot Warmup AdStore: %w", err))
 	}
 
-	serveCommand := &commands.NewServe(adStore)
-	updateAdCommand := &commands.UpdateAdCommand{AdStore: adStore}
-
-	handlers.ServeCommand = serveCommand
-
-	router := mux.NewRouter()
-	handlers.ConfigureRouter(router.PathPrefix("/").Subrouter())
+	handlers.ServeCommand = commands.NewServe(adStore)
 
 	config := sarama.NewConfig()
 	config.Version = sarama.MaxVersion
-	adUpdater := kafka.NewAdUpdater(updateAdCommand)
+	adUpdater := kafka.NewAdUpdater(commands.NewUpdateAd(adStore))
 
 	ctx := context.Background()
 	client, err := sarama.NewConsumerGroup(strings.Split(kafkaBootstrapServers, ","), "adserver-"+uuid.New().String(), config)
