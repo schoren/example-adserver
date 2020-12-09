@@ -5,16 +5,18 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/Shopify/sarama"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
-	"github.com/schoren/example-adserver/ads/internal/commands"
-	"github.com/schoren/example-adserver/ads/internal/handlers"
-	"github.com/schoren/example-adserver/ads/internal/platform/kafka"
-	"github.com/schoren/example-adserver/ads/internal/platform/mysql"
+	"github.com/schoren/example-adserver/ads/internal/ads/commands"
+	"github.com/schoren/example-adserver/ads/internal/ads/handlers"
+	"github.com/schoren/example-adserver/ads/internal/ads/platform/kafka"
+	"github.com/schoren/example-adserver/ads/internal/ads/platform/mysql"
 	"github.com/schoren/example-adserver/pkg/config"
+	"github.com/schoren/example-adserver/pkg/instrumentation"
 	"github.com/schoren/example-adserver/pkg/retry"
 )
 
@@ -46,10 +48,12 @@ func setupHandlers(cfg appConfig, db *sql.DB, kafkaProducer sarama.SyncProducer)
 	kafkaNotifier := kafka.NewNotifier(kafkaProducer, config.KafkaTopicsAdUpdates)
 	adsRepository := mysql.NewAdsRepository(db)
 
+	inst := instrumentation.NewLogger(log.New(os.Stderr, "[Ads]", log.LstdFlags))
+
 	handlers.AdServerBaseURL = cfg.AdserverBaseURL
-	handlers.CreateCommand = commands.NewCreate(adsRepository, kafkaNotifier)
-	handlers.UpdateCommand = commands.NewUpdate(adsRepository, kafkaNotifier)
-	handlers.ListActiveCommand = commands.NewListActive(adsRepository)
+	handlers.CreateCommand = commands.NewCreator(adsRepository, kafkaNotifier, inst)
+	handlers.UpdateCommand = commands.NewUpdate(adsRepository, kafkaNotifier, inst)
+	handlers.ListActiveCommand = commands.NewListActive(adsRepository, inst)
 
 }
 

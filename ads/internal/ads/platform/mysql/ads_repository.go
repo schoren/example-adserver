@@ -4,19 +4,22 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/schoren/example-adserver/ads/internal/ads/actions"
 	"github.com/schoren/example-adserver/pkg/types"
 )
-
-// AdsRepository is a MySQL repository for ads
-type AdsRepository struct {
-	db *sql.DB
-}
 
 func NewAdsRepository(db *sql.DB) *AdsRepository {
 	return &AdsRepository{db}
 }
 
-// Create persist an ad into the database and returns a new ad with the corresponding ID
+var _ actions.ActiveAdGetter = &AdsRepository{}
+var _ actions.CreatePersister = &AdsRepository{}
+var _ actions.UpdatePersister = &AdsRepository{}
+
+type AdsRepository struct {
+	db *sql.DB
+}
+
 func (r *AdsRepository) Create(ad types.Ad) (types.Ad, error) {
 	stmt, err := r.db.Prepare("INSERT INTO ads (image_url, clickthrough_url) VALUES (?, ?)")
 	if err != nil {
@@ -42,7 +45,6 @@ func (r *AdsRepository) Create(ad types.Ad) (types.Ad, error) {
 	return newAd, nil
 }
 
-// Update persist ad changes into the database
 func (r *AdsRepository) Update(ad types.Ad) error {
 	stmt, err := r.db.Prepare("UPDATE ads SET image_url = ?, clickthrough_url = ? WHERE id = ?")
 	if err != nil {
@@ -57,7 +59,6 @@ func (r *AdsRepository) Update(ad types.Ad) error {
 	return nil
 }
 
-// GetActive returns all currently active ads
 func (r *AdsRepository) GetActive() ([]types.Ad, error) {
 	results, err := r.db.Query("SELECT id, image_url, clickthrough_url FROM ads")
 	if err != nil {

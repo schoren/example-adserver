@@ -1,4 +1,4 @@
-package commands_test
+package actions_test
 
 import (
 	"github.com/schoren/example-adserver/pkg/types"

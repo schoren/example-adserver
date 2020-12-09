@@ -16,24 +16,17 @@ const (
 	CreateURL    = "/"
 )
 
-// Creater handles the creation of a given ad
-type Creater interface {
-	Execute(commands.CreatePayload) (types.Ad, error)
-}
-
-var CreateCommand Creater
-
-type createRequest struct {
-	ImageURL        string `json:"image_url"`
-	ClickThroughURL string `json:"clickthrough_url"`
-}
+var CreateCommand commands.Creator
 
 // Create handles HTTP requests for creating ads
 func Create(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	var ad createRequest
-	err := json.NewDecoder(r.Body).Decode(&ad)
+	var req struct {
+		ImageURL        string `json:"image_url"`
+		ClickThroughURL string `json:"clickthrough_url"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		log.Printf("Error decoding JSON: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -41,20 +34,18 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	payload := commands.CreatePayload{
-		Ad: types.Ad{
-			ImageURL:        ad.ImageURL,
-			ClickThroughURL: ad.ClickThroughURL,
-		},
+	ad := types.Ad{
+		ImageURL:        req.ImageURL,
+		ClickThroughURL: req.ClickThroughURL,
 	}
 
-	persistedAd, err := CreateCommand.Execute(payload)
+	ad, err = CreateCommand.Execute(ad)
 	if err != nil {
 		log.Printf("Error executing Create command: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Add("Location", fmt.Sprintf("%s/%d", AdServerBaseURL, persistedAd.ID))
+	w.Header().Add("Location", fmt.Sprintf("%s/%d", AdServerBaseURL, ad.ID))
 	w.WriteHeader(http.StatusCreated)
 }

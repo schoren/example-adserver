@@ -1,4 +1,4 @@
-package commands
+package actions
 
 import (
 	"github.com/schoren/example-adserver/adserver/internal/adstore"
