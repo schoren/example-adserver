@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/schoren/example-adserver/ads/internal/ads/actions"
+	"github.com/schoren/example-adserver/ads/internal/actions"
 	"github.com/schoren/example-adserver/pkg/types"
 )
 

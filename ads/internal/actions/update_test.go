@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/schoren/example-adserver/ads/internal/ads/actions"
+	"github.com/schoren/example-adserver/ads/internal//actions"
 	"github.com/schoren/example-adserver/pkg/instrumentation"
 	"github.com/schoren/example-adserver/pkg/types"
 )

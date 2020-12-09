@@ -8,7 +8,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/schoren/example-adserver/ads/internal/commands"
+	"github.com/schoren/example-adserver/ads/internal/actions"
+	"github.com/schoren/example-adserver/pkg/httputil"
 	"github.com/schoren/example-adserver/pkg/types"
 )
 
@@ -18,20 +19,19 @@ const (
 	UpdateURL    = "/{id}"
 )
 
-// Updater handles the creation of a given ad
-type Updater interface {
-	Execute(commands.UpdatePayload) error
+func NewUpdate(a actions.Updater) httputil.Handler {
+	return &update{a}
 }
 
-var UpdateCommand Updater
-
-type updateRequest struct {
-	ImageURL        string `json:"image_url"`
-	ClickThroughURL string `json:"clickthrough_url"`
+type update struct {
+	action actions.Updater
 }
 
-// Update handles HTTP requests for creating ads
-func Update(w http.ResponseWriter, r *http.Request) {
+func (h *update) Register(router *mux.Router) {
+	router.HandleFunc(UpdateURL, h.Handle).Methods(UpdateMethod)
+}
+
+func (h *update) Handle(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil || id < 1 {
@@ -42,8 +42,11 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	var ad updateRequest
-	err = json.NewDecoder(r.Body).Decode(&ad)
+	var req struct {
+		ImageURL        string `json:"image_url"`
+		ClickThroughURL string `json:"clickthrough_url"`
+	}
+	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		log.Printf("Error decoding JSON: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -51,15 +54,13 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	payload := commands.UpdatePayload{
-		Ad: types.Ad{
-			ID:              id,
-			ImageURL:        ad.ImageURL,
-			ClickThroughURL: ad.ClickThroughURL,
-		},
+	ad := types.Ad{
+		ID:              id,
+		ImageURL:        req.ImageURL,
+		ClickThroughURL: req.ClickThroughURL,
 	}
 
-	err = UpdateCommand.Execute(payload)
+	err = h.action.Update(ad)
 	if err != nil {
 		log.Printf("Error executing Update command: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
