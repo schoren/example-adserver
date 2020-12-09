@@ -19,7 +19,7 @@ func NewAdUpdater(updater actions.AdUpdater) *AdUpdater {
 // AdUpdater represents a Sarama consumer group consumer
 type AdUpdater struct {
 	Ready   chan bool
-	updater Updater
+	updater actions.AdUpdater
 }
 
 // Setup is run at the beginning of a new session, before ConsumeClaim
