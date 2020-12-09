@@ -11,23 +11,6 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-var (
-	warmupExampleAdList = []types.Ad{
-		{
-			ID:              1,
-			ImageURL:        "https://example.org/1.png",
-			ClickThroughURL: "https://example.org/1.html",
-		},
-		{
-			ID:              2,
-			ImageURL:        "https://example.org/2.png",
-			ClickThroughURL: "https://example.org/2.html",
-		},
-	}
-
-	warmupExampleListerError = fmt.Errorf("Some error")
-)
-
 type MockSetter struct {
 	mock.Mock
 }
@@ -52,29 +35,54 @@ func warmupSetup() (*MockSetter, *MockAdLister) {
 	return store, adLister
 }
 
-func TestWarmupOK(t *testing.T) {
-	store, adLister := warmupSetup()
+func TestWarmup(t *testing.T) {
+	t.Parallel()
 
-	adLister.On("List").Return(warmupExampleAdList, nil)
-	store.On("Set", warmupExampleAdList[0]).Once()
-	store.On("Set", warmupExampleAdList[1]).Once()
+	var (
+		exampleAdList = []types.Ad{
+			{
+				ID:              1,
+				ImageURL:        "https://example.org/1.png",
+				ClickThroughURL: "https://example.org/1.html",
+			},
+			{
+				ID:              2,
+				ImageURL:        "https://example.org/2.png",
+				ClickThroughURL: "https://example.org/2.html",
+			},
+		}
 
-	err := adstore.Warmup(store, adLister)
+		exampleListerError = fmt.Errorf("Some error")
+	)
 
-	assert.NoError(t, err)
-	store.AssertExpectations(t)
-	adLister.AssertExpectations(t)
-}
+	t.Run("OK", func(t *testing.T) {
+		t.Parallel()
 
-func TestWarmupListerError(t *testing.T) {
-	store, adLister := warmupSetup()
+		store, adLister := warmupSetup()
 
-	adLister.On("List").Return([]types.Ad{}, warmupExampleListerError)
+		adLister.On("List").Return(exampleAdList, nil)
+		store.On("Set", exampleAdList[0]).Once()
+		store.On("Set", exampleAdList[1]).Once()
 
-	err := adstore.Warmup(store, adLister)
+		err := adstore.Warmup(store, adLister)
 
-	assert.Error(t, err)
-	assert.True(t, errors.Is(err, warmupExampleListerError))
-	store.AssertExpectations(t)
-	adLister.AssertExpectations(t)
+		assert.NoError(t, err)
+		store.AssertExpectations(t)
+		adLister.AssertExpectations(t)
+	})
+
+	t.Run("Lister error", func(t *testing.T) {
+		t.Parallel()
+
+		store, adLister := warmupSetup()
+
+		adLister.On("List").Return([]types.Ad{}, exampleListerError)
+
+		err := adstore.Warmup(store, adLister)
+
+		assert.Error(t, err)
+		assert.True(t, errors.Is(err, exampleListerError))
+		store.AssertExpectations(t)
+		adLister.AssertExpectations(t)
+	})
 }
