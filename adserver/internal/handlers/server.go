@@ -7,7 +7,9 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/schoren/example-adserver/adserver/internal/actions"
 	"github.com/schoren/example-adserver/adserver/internal/renderer"
+	"github.com/schoren/example-adserver/pkg/httputil"
 )
 
 const (
@@ -16,13 +18,22 @@ const (
 )
 
 type Server interface {
-	Execute(int) (renderer.Renderer, error)
+	Serve(int) (renderer.Renderer, error)
 }
 
-var ServeCommand Server
+func NewServer(a actions.Server) httputil.Handler {
+	return &server{a}
+}
 
-// Serve handles HTTP requests for ad serving
-func Serve(w http.ResponseWriter, r *http.Request) {
+type server struct {
+	action actions.Server
+}
+
+func (h *server) Register(router *mux.Router) {
+	router.HandleFunc(ServeURL, h.Handle).Methods(ServeMethod)
+}
+
+func (h *server) Handle(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil || id < 1 {
@@ -31,7 +42,7 @@ func Serve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	renderer, err := ServeCommand.Execute(id)
+	renderer, err := h.action.Serve(id)
 	if err != nil {
 		log.Printf("Error Serving ad with ID %d: %v", id, err)
 		w.WriteHeader(http.StatusNotFound)
