@@ -5,15 +5,11 @@ import (
 	"log"
 
 	"github.com/Shopify/sarama"
-	"github.com/schoren/example-adserver/adserver/internal/commands"
+	"github.com/schoren/example-adserver/adserver/internal/actions"
 	"github.com/schoren/example-adserver/pkg/types"
 )
 
-type Updater interface {
-	Execute(payload commands.UpdateAdPayload) error
-}
-
-func NewAdUpdater(updater Updater) *AdUpdater {
+func NewAdUpdater(updater actions.AdUpdater) *AdUpdater {
 	return &AdUpdater{
 		Ready:   make(chan bool),
 		updater: updater,
@@ -46,10 +42,7 @@ func (adupdater *AdUpdater) ConsumeClaim(session sarama.ConsumerGroupSession, cl
 		if err != nil {
 			log.Printf("Error unmarshalling JSON: %v", err)
 		}
-		payload := commands.UpdateAdPayload{
-			Ad: updatedAd,
-		}
-		adupdater.updater.Execute(payload)
+		adupdater.updater.Update(updatedAd)
 
 		session.MarkMessage(message, "")
 	}
