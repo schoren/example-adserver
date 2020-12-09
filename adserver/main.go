@@ -11,8 +11,8 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/schoren/example-adserver/adserver/internal/actions"
 	"github.com/schoren/example-adserver/adserver/internal/adstore"
-	"github.com/schoren/example-adserver/adserver/internal/commands"
 	"github.com/schoren/example-adserver/adserver/internal/handlers"
 	"github.com/schoren/example-adserver/adserver/internal/platform/kafka"
 	"github.com/schoren/example-adserver/adserver/internal/platform/memory"
@@ -33,14 +33,15 @@ func main() {
 
 	adStore := createAdStore(cfg)
 
-	setupHandlers(cfg, adStore)
+	router := mux.NewRouter().PathPrefix("/ads").Subrouter()
+	setupHandlers(cfg, adStore, router)
 
 	adUpdater := setupAdUpdater(cfg, adStore)
 
 	<-adUpdater.Ready // Await till the consumer has been set up
 	log.Println("Kafka consumer up and running!...")
 
-	srv := setupHTTPServer(cfg)
+	srv := setupHTTPServer(cfg, router)
 
 	log.Printf("Starting server on %s", srv.Addr)
 	log.Fatal(srv.ListenAndServe())
@@ -68,7 +69,7 @@ func createAdStore(cfg appConfig) adstore.GetSetter {
 
 func setupAdUpdater(cfg appConfig, adStore adstore.GetSetter) *kafka.AdUpdater {
 	client := setupKafkaConsumer(cfg)
-	adUpdater := kafka.NewAdUpdater(commands.NewUpdateAd(adStore))
+	adUpdater := kafka.NewAdUpdater(actions.NewAdUpdater(adStore))
 	ctx := context.Background()
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
@@ -117,16 +118,14 @@ func setupKafkaConsumer(cfg appConfig) sarama.ConsumerGroup {
 	return client
 }
 
-func setupHandlers(cfg appConfig, adStore adstore.GetSetter) {
-	handlers.ServeCommand = commands.NewServe(adStore)
+func setupHandlers(cfg appConfig, adStore adstore.GetSetter, r *mux.Router) {
+	create := handlers.NewServer(actions.NewServer(adStore))
+	create.Register(r)
 }
 
-func setupHTTPServer(cfg appConfig) *http.Server {
-	router := mux.NewRouter()
-	handlers.ConfigureRouter(router.PathPrefix("/").Subrouter())
-
+func setupHTTPServer(cfg appConfig, r *mux.Router) *http.Server {
 	return &http.Server{
-		Handler: router,
+		Handler: r,
 		Addr:    cfg.SrvAddr,
 		// Good practice: enforce timeouts for servers you create!
 		WriteTimeout: 2 * time.Second,
